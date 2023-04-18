@@ -1,0 +1,36 @@
+{
+  "name": "02-ignite-timer",
+  "private": true,
+  "version": "0.0.0",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint src --ext .ts,.tsx"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.10.6",
+    "@emotion/styled": "^11.10.6",
+    "@hookform/resolvers": "^2.9.1",
+    "@mui/material": "^5.11.14",
+    "@radix-ui/react-dialog": "^1.0.3",
+    "phosphor-react": "^1.4.1",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-hook-form": "^7.32.0",
+    "react-router-dom": "^6.3.0",
+    "styled-components": "^5.3.5",
+    "uuidv4": "^6.2.13",
+    "zod": "^3.17.3"
+  },
+  "devDependencies": {
+    "@rocketseat/eslint-config": "^1.1.3",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0",
+    "@types/styled-components": "^5.1.25",
+    "@vitejs/plugin-react": "^1.3.0",
+    "eslint": "^8.16.0",
+    "typescript": "^4.6.3",
+    "vite": "^2.9.9"
+  }
+}
