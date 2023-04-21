@@ -19,6 +19,7 @@
     "react-dom": "^18.0.0",
     "react-hook-form": "^7.32.0",
     "react-router-dom": "^6.3.0",
+    "react-three-fiber": "^6.0.13",
     "styled-components": "^5.3.5",
     "uuidv4": "^6.2.13",
     "zod": "^3.17.3"

@@ -3,3 +3,4 @@ uvicorn
 pandas
 pyodbc
 middleware
+boto3
