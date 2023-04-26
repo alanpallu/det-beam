@@ -5,4 +5,5 @@ pyodbc
 boto3
 psycopg2
 openpyxl
-calfem-python
+anastruct
+matplotlib
