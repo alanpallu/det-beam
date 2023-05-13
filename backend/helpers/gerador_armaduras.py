@@ -4,7 +4,7 @@ from decimal import Decimal
 import json
 
 
-def gerar_bitolas(phi_estribo, list_bws, cobrimento, phi_agregado):
+def gerador_armaduras(phi_estribo, list_bws, cobrimento, phi_agregado):
     list_final = []
     list_phi = [0.63, 0.8, 1.0, 1.25, 1.6, 2.0, 2.5]
     for bw in list_bws:
@@ -112,7 +112,7 @@ def insert_into_dynamodb(table_name, item):
 
 if __name__ == '__main__':
     list_bws = [*range(15, 65, 5)]
-    bitolas_list = gerar_bitolas(phi_estribo=0.5, list_bws=list_bws, cobrimento=2.5, phi_agregado=2.28)
+    bitolas_list = gerador_armaduras(phi_estribo=0.5, list_bws=list_bws, cobrimento=2.5, phi_agregado=2.28)
     for item in bitolas_list:
         insert_into_dynamodb('armadura_transversal', item)
     print(bitolas_list)

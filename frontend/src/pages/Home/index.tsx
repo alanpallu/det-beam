@@ -1,6 +1,7 @@
 import {Pencil} from "phosphor-react";
 import {useForm, useFieldArray} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
+import axios from "axios";
 import * as zod from "zod";
 import {useState} from "react";
 import Divider from '@mui/material/Divider';
@@ -13,9 +14,9 @@ import {
 } from "./styles";
 
 const newCycleFormValidationSchema = zod.object({
-    comprimento: zod.number().gt(0, "Informe o comprimento total da viga"),
-    largura: zod.number().gt(0, "Informe a largura da viga"),
-    altura: zod.number().gt(0, "Informe a altura da viga"),
+    comprimento: zod.string().min(0, "Informe o comprimento total da viga"),
+    largura: zod.string().min(0, "Informe a largura da viga"),
+    altura: zod.string().min(0, "Informe a altura da viga"),
     classeConcreto: zod.string().min(2, "Selecione a classe do concreto"),
     classeAgressividade: zod.string().min(2, "Selecione a classe de agressividade ambiental"),
     combAcoes: zod.string().min(2, "Selecione o tipo de combinação das ações"),
@@ -35,11 +36,11 @@ type NewCycleFormData = zod.infer<typeof newCycleFormValidationSchema>
 
 export function Home() {
     const {register, handleSubmit, watch, reset, setValue, control} = useForm<NewCycleFormData>({
-        // resolver: zodResolver(newCycleFormValidationSchema),
+        resolver: zodResolver(newCycleFormValidationSchema),
         defaultValues: {
-            comprimento: 0,
-            largura: 0,
-            altura: 0,
+            comprimento: '',
+            largura: '',
+            altura: '',
             classeConcreto: "",
             classeAgressividade: "",
             tramos: [{numero: "", comprimento: ""}],
@@ -90,7 +91,19 @@ export function Home() {
     const combinacaoAcoesArray = ["Normais", "Especiais ou de Construção", "Excepcionais"];
     const agressividadeAmbArray = ["I", "II", "III", "IV"];
 
-    console.log(tipoCargaAtual)
+    const handleCreateNewRequest = async (data: NewCycleFormData) => {
+        console.log('entrou')
+        axios.defaults.baseURL = 'http://0.0.0.0:8999';
+        const response = await axios
+            .post("/api/calculate/", data)
+            .then(() => {
+                reset();
+                console.log("Sucesso")
+            })
+            .catch((err: any) => {
+                console.log(err)
+            })
+    }
 
     return (
         <HomeContainer>
@@ -278,7 +291,7 @@ export function Home() {
 
                 </FormContainer>
 
-                <CalculateButton type="submit">
+                <CalculateButton type="submit" onClick={handleSubmit(handleCreateNewRequest)}>
                     <Pencil size={24}/>
                     Dimensionar e Detalhar
                 </CalculateButton>

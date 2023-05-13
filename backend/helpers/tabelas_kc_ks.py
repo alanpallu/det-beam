@@ -3,8 +3,11 @@ import psycopg2
 from sqlalchemy import create_engine
 
 
-def create_table_from_excel_file(excel_file, table_name, database_name, server_name, port, user_name, password):
-    engine = create_engine(f'postgresql://{user_name}:{password}@{server_name}:{port}/{database_name}')
+def create_table_from_excel_file(excel_file, table_name, database_name
+                                 , server_name, port, user_name, password):
+    engine = create_engine(f'postgresql://'
+    f'{user_name}:{password}@{server_name}:{port}/{database_name}')
+
     conn = engine.connect()
 
     # read Excel file

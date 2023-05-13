@@ -1,6 +1,5 @@
 from fastapi import APIRouter, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.openapi.utils import get_openapi
 from starlette.middleware.sessions import SessionMiddleware
 from routes.calculate_routes import api_calculate
 
@@ -16,3 +15,4 @@ app.add_middleware(
 
 api = APIRouter(prefix='/api')
 api.include_router(api_calculate)
+app.include_router(api)

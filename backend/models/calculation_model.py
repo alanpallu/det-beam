@@ -3,5 +3,11 @@ from typing_extensions import Literal
 from pydantic import BaseModel, Field
 
 class FormInput(BaseModel):
-    largura: int
-    altura: int
+    comprimento: str
+    largura: str
+    altura: str
+    classeConcreto: str
+    classeAgressividade: str
+    combAcoes: str
+    tramos: List
+    cargas: List
