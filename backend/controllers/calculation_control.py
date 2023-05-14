@@ -2,6 +2,7 @@ from typing import Optional
 from models.calculation_model import FormInput
 import pandas as pd
 from helpers.esforcos_solicitantes import get_esforcos
+from helpers.tabelas_kc_ks import select_all
 
 
 class CalculatorControl:
@@ -17,24 +18,24 @@ class CalculatorControl:
         tramos = dados.tramos
         cargas = dados.cargas
 
-        esforcos, momentos, cortantes = cls.esforcos_solicitantes(cargas=cargas, tramos=tramos, h=altura, b=largura,
+        esforcos, momentos, cortantes = cls.__esforcos_solicitantes(cargas=cargas, tramos=tramos, h=altura, b=largura,
                                                                   concreto=classeConcreto)
 
         return None
 
     @classmethod
-    def esforcos_solicitantes(cls, cargas, tramos, h, b, concreto):
+    def __esforcos_solicitantes(cls, cargas, tramos, h, b, concreto):
         nos_list = []
         coordenadas_list = []
         last_coordenada = 0
         for tramo in tramos:
+            if int(tramo['numero']) == 1:
+                coordenadas_list.append([0, 0])
+                nos_list.append(0)
+            last_coordenada += float(tramo['comprimento'])
             coordenadas_list.append([last_coordenada, 0])
             nos_list.append(last_coordenada)
-            last_coordenada += float(tramo['comprimento'])
-            if int(tramo['numero']) == 1:
-                coordenadas_list.append([last_coordenada, 0])
-                nos_list.append(last_coordenada)
-                last_coordenada += float(tramo['comprimento'])
+
 
         node_ids_fixed = nos_list
 
@@ -60,3 +61,8 @@ class CalculatorControl:
                                                         cargas_conc_list, cargas_dist_list)
 
         return results, moment_list, shear_list
+
+    @classmethod
+    def __momento_limite(cls, b, h, classe_agressividade):
+
+        return None
