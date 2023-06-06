@@ -63,6 +63,18 @@ export const HistoryList = styled.div`
   }
 `
 
+export const FiguresContainer = styled.div`
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+
+  img {
+    width: 60%; 
+  }
+`
+
 const STATUS_COLORS = {
   yellow: 'yellow-500',
   green: 'green-500',
