@@ -9,6 +9,7 @@ class FormInput(BaseModel):
     classeConcreto: str
     classeAgressividade: str
     combAcoes: str
-    constanteMola: str
+    constanteMolaEsq: str
+    constanteMolaDir: str
     tramos: List
     cargas: List

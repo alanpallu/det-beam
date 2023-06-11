@@ -6,7 +6,7 @@ import json
 
 def gerador_armaduras(phi_estribo, list_bws, cobrimento, phi_agregado):
     list_final = []
-    list_phi = [0.63, 0.8, 1.0, 1.25, 1.6, 2.0, 2.5]
+    list_phi = [0.63, 0.8, 1.0, 1.25, 1.6, 2.0]
     for bw in list_bws:
         for phi in list_phi:
             n = 2

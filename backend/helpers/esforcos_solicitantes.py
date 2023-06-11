@@ -5,7 +5,7 @@ from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from fastapi.responses import FileResponse, StreamingResponse
 
 
-def get_esforcos(h, b, concrete_type, coords, node_ids_fixed, point_loads, q_loads, constante_mola, tipo_resultado='esforcos', tipo_plot=''):
+def get_esforcos(h, b, concrete_type, coords, node_ids_fixed, point_loads, q_loads, constante_mola_esq, constante_mola_dir,  tipo_resultado='esforcos', tipo_plot=''):
     dict_concreto = {'C20': 21000000, 'C25': 24000000, 'C30': 27000000, 'C35': 29000000, 'C40': 32000000,
                      'C45': 34000000, 'C50': 37000000}
     area = h * b
@@ -20,14 +20,21 @@ def get_esforcos(h, b, concrete_type, coords, node_ids_fixed, point_loads, q_loa
 
     for node in node_ids_fixed:
         node_id = int(coords.index([node, 0]) + 1)
-        if node_id == 1 or node_id == len(coords):
-            if len(node_ids_fixed) == 2:
-                ss.add_support_hinged(node_id=node_id)
-            else:
-                #ss.add_support_fixed(node_id=node_id)
-                ss.add_support_spring(node_id=node_id, translation=3, k=constante_mola)
+        if node_id == 1:
+            ss.add_support_spring(node_id=node_id, translation=3, k=constante_mola_esq*10000) #todo revisar contante da mola
+        elif node_id == len(coords):
+            ss.add_support_spring(node_id=node_id, translation=3, k=constante_mola_dir*10000)
         else:
             ss.add_support_hinged(node_id=node_id)
+
+        # if node_id == 1 or node_id == len(coords):
+        #     if len(node_ids_fixed) == 2:
+        #         ss.add_support_hinged(node_id=node_id)
+        #     else:
+        #         #ss.add_support_fixed(node_id=node_id)
+        #         ss.add_support_spring(node_id=node_id, translation=3, k=constante_mola)
+        # else:
+        #     ss.add_support_hinged(node_id=node_id)
 
     for point_load in point_loads:
         node = int(point_load[0])

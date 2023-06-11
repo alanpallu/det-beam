@@ -17,9 +17,9 @@ import {
 } from "./styles";
 
 const newCycleFormValidationSchema = zod.object({
-    comprimento: zod.string().min(0, "Informe o comprimento total da viga"),
-    largura: zod.string().min(0, "Informe a largura da viga"),
-    altura: zod.string().min(0, "Informe a altura da viga"),
+    comprimento: zod.string().min(1, "Informe o comprimento total da viga"),
+    largura: zod.string().min(1, "Informe a largura da viga"),
+    altura: zod.string().min(1, "Informe a altura da viga"),
     classeConcreto: zod.string().min(2, "Selecione a classe do concreto"),
     classeAgressividade: zod
         .string()
@@ -39,7 +39,8 @@ const newCycleFormValidationSchema = zod.object({
             posiFinal: zod.optional(zod.string()),
         }),
     ),
-    constanteMola: zod.optional(zod.string()),
+    constanteMolaEsq: zod.optional(zod.string()),
+    constanteMolaDir: zod.optional(zod.string()),
 });
 
 type NewCycleFormData = zod.infer<typeof newCycleFormValidationSchema>
@@ -49,20 +50,34 @@ export function Home() {
     const {register, handleSubmit, watch, reset, setValue, control} =
         useForm<NewCycleFormData>({
             resolver: zodResolver(newCycleFormValidationSchema),
+            // defaultValues: {
+            //     comprimento: "",
+            //     largura: "",
+            //     altura: "",
+            //     classeConcreto: "",
+            //     classeAgressividade: "",
+            //     constanteMolaEsq: "",
+            //     constanteMolaDir: "",
+            //     tramos: [{numero: "", comprimento: ""}],
+            //     cargas: [{tipo: "", intensidade: "", posiInicial: "", posiFinal: ""}],
+            // },
             defaultValues: {
-                comprimento: "",
-                largura: "",
-                altura: "",
-                classeConcreto: "",
-                classeAgressividade: "",
-                constanteMola: "",
-                tramos: [{numero: "", comprimento: ""}],
-                cargas: [{tipo: "", intensidade: "", posiInicial: "", posiFinal: ""}],
+                comprimento: "1438",
+                largura: "19",
+                altura: "60",
+                classeConcreto: "C25",
+                combAcoes: 'Normais',
+                classeAgressividade: "II",
+                constanteMolaEsq: "1678522",
+                constanteMolaDir: "1678522",
+                tramos: [{numero: "1", comprimento: "719"}, {numero: "2", comprimento: "719"}],
+                cargas: [{tipo: "Distribuída", intensidade: "-0.2504", posiInicial: "0", posiFinal: "1438"}],
             },
         });
     // const [open, setOpen] = useState(false)
     const [tipoCargaAtual, setTipoCargaAtual] = useState(["Concentrada"]);
     const [figures, setFigures] = useState({structure: "", moment: "", shear: ""});
+    const [buttonDisabled, setButtonDisabled] = useState(false)
     // const handleOpen = () => setOpen(true)
     // const handleClose = () => setOpen(false)
 
@@ -119,6 +134,7 @@ export function Home() {
 
     const fetchData = async (data: any) => {
         axios.defaults.baseURL = "http://localhost:8999";
+        setButtonDisabled(true)
         try {
             const res1 = await axios.post("/api/calculate/structure-plot/", data, {responseType: "blob"})
             setFigures(prevState => ({...prevState, structure: URL.createObjectURL(res1.data)}));
@@ -172,17 +188,18 @@ export function Home() {
         axios
             .post("/api/calculate/", data)
             .then((response) => {
-                console.log(JSON.parse(response.data));
+                let data = response.data
                 // @ts-ignore
                 setFigures(prevState => {
-                    navigate("/calc", {state: prevState});
+                    navigate("/calc", {state: {prevState, data}});
                     return prevState;
                 });
-                //reset();
+                reset();
             })
             .catch((err: any) => {
                 console.log(err);
-            });
+            })
+            .finally(() => setButtonDisabled(false));
 
 
     };
@@ -289,17 +306,30 @@ export function Home() {
                                     Adicionar
                                 </TramosButton>
                             </div>
-                            {fieldsTramos.length > 1 ? (
-                                <div className={"div-1"}>
-                                    <BasicInput
-                                        type="text"
-                                        placeholder="Rigidez à rotação nos apoios das extremidades"
-                                        title="Valores em kN.cm"
-                                        alt="Valores em kN.cm"
-                                        {...register("constanteMola")}
-                                    />
-                                </div>
-                            ) : <span></span>}
+                            <div className={"div-1"}>
+                                <BasicInput
+                                    type="number"
+                                    placeholder="Rigidez do apoio esquerdo"
+                                    title="Rigidez à rotação dos apoios das extremidades. Valores em kN.cm"
+                                    alt="Rigidez à rotação dos apoios das extremidades. Valores em kN.cm"
+                                    {...register("constanteMolaEsq")}
+                                />
+                                <BasicInput
+                                    type="number"
+                                    placeholder="Rigidez do apoio direito"
+                                    title="Rigidez à rotação dos apoios das extremidades. Valores em kN.cm"
+                                    alt="Rigidez à rotação dos apoios das extremidades. Valores em kN.cm"
+                                    {...register("constanteMolaDir")}
+                                />
+                            </div>
+                            <div className={"div-nota"}>
+                                <span>Valores em kN.cm</span>
+                            </div>
+                            <Divider
+                                variant="middle"
+                                color={"#7C7C8A"}
+                                sx={{marginTop: "1rem", marginBottom: "1rem", width: "95%"}}
+                            />
                             {fieldsTramos.map((field, index) => {
                                 return (
                                     <div>
@@ -363,6 +393,9 @@ export function Home() {
                                                 {...register(`cargas.${index}.intensidade`)}
                                             />
                                         </div>
+                                        <div className={"div-nota div-nota-end"}>
+                                            <span>Valores em kN ou kN/cm</span>
+                                        </div>
                                         <div className={"div-1"} key={field.intensidade}>
                                             <BasicInput
                                                 type="text"
@@ -399,6 +432,7 @@ export function Home() {
                 <CalculateButton
                     type="submit"
                     onClick={handleSubmit(handleCreateNewRequest)}
+                    disabled={buttonDisabled}
                 >
                     <Pencil size={24}/>
                     Dimensionar e Detalhar

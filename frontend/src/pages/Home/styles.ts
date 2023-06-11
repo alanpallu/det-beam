@@ -57,7 +57,17 @@ export const FormContainer = styled.div`
       display: flex;
       align-items: start;
     }
-  }
+    
+    .div-nota {
+      width: 100%;
+      font-size: 14px;
+      color: ${(props) => props.theme['gray-400']};
+    }
+
+    .div-nota-end {
+      justify-content: end;
+      display: flex;
+    }
   
   .tramos-label {
     font-size: 1.5rem;

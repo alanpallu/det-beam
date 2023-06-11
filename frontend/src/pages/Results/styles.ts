@@ -73,6 +73,14 @@ export const FiguresContainer = styled.div`
   img {
     width: 60%; 
   }
+  
+  .figure-div {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+  
 `
 
 const STATUS_COLORS = {
