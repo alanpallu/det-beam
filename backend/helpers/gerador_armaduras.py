@@ -52,8 +52,8 @@ def gerador_armaduras(phi_estribo, list_bws, cobrimento, phi_agregado):
                     area_list = list(map(lambda x: math.pi * (x ** 2 / 4), phi_camadas))
                     area_final_list = [a * b for a, b in zip(area_list, barras_por_camada)]
                     sv1 = max(2, phi, 0.5 * phi_agregado)
-                    cg1 = cobrimento + 0.5 + phi / 2
-                    cg2 = cobrimento + 0.5 + phi + sv1 + phi_segunda_camada / 2
+                    cg1 = cobrimento + phi_estribo + phi / 2
+                    cg2 = cobrimento + phi_estribo + phi + sv1 + phi_segunda_camada / 2
 
                     item_final['bw'] = bw
                     item_final['list_barras_por_camada'] = barras_por_camada
@@ -88,9 +88,9 @@ def gerador_armaduras(phi_estribo, list_bws, cobrimento, phi_agregado):
                         area_final_list = [a * b for a, b in zip(area_list, barras_por_camada)]
                         sv1 = max(2, phi, 0.5 * phi_agregado)
                         sv2 = max(2, phi_max_segunda_camada, 0.5 * phi_agregado)
-                        cg1 = cobrimento + 0.5 + phi / 2
-                        cg2 = cobrimento + 0.5 + phi + sv1 + phi_max_segunda_camada / 2
-                        cg3 = cobrimento + 0.5 + phi + sv1 + phi_max_segunda_camada + sv2 + phi_teceira_camada / 2
+                        cg1 = cobrimento + phi_estribo + phi / 2
+                        cg2 = cobrimento + phi_estribo + phi + sv1 + phi_max_segunda_camada / 2
+                        cg3 = cobrimento + phi_estribo + phi + sv1 + phi_max_segunda_camada + sv2 + phi_teceira_camada / 2
                         item_final['bw'] = bw
                         item_final['list_barras_por_camada'] = barras_por_camada
                         item_final['list_bitolas_camadas'] = phi_camadas

@@ -62,7 +62,7 @@ class CalculatorControl:
         esforcos, coordenadas_list = cls.__esforcos_solicitantes(cargas=cargas, tramos=tramos, h=altura, b=largura,
                                                                  concreto=classeConcreto,
                                                                  constante_mola_esq=constante_mola_esq,
-                                                                 constante_mola_dir=constante_mola_dir, )
+                                                                 constante_mola_dir=constante_mola_dir)
 
         momento_limite = cls.__momento_limite(d=d, classe_concreto=classeConcreto,
                                               b=largura, tabela_kc_ks=tabela_kc_ks)
@@ -96,11 +96,11 @@ class CalculatorControl:
         armadura_com_bitolas['coord'] = armadura_com_bitolas['coord'].apply(
             lambda x: str(round(x, 2)).replace('.', ','))
 
-        armadura_com_bitolas['Ast_efe'] = armadura_com_bitolas['Ast_efe'].apply(lambda x: str(round(x, 2)).replace('.', ','))
+        #armadura_com_bitolas['Ast_efe'] = armadura_com_bitolas['Ast_efe'].apply(lambda x: str(round(x, 2)).replace('.', ','))
 
         if 'Asc' in armadura_com_bitolas.columns:
             armadura_com_bitolas['Asc'] = armadura_com_bitolas['Asc'].apply(lambda x: str(round(x, 2)).replace('.', ','))
-            armadura_com_bitolas['Asc_efe'] = armadura_com_bitolas['Asc_efe'].apply(lambda x: str(round(x, 2)).replace('.', ','))
+            #armadura_com_bitolas['Asc_efe'] = armadura_com_bitolas['Asc_efe'].apply(lambda x: str(round(x, 2)).replace('.', ','))
 
         armadura_com_bitolas['Ast'] = armadura_com_bitolas['Ast'].apply(lambda x: str(round(x, 2)).replace('.', ','))
         armadura_com_bitolas['Msk'] = armadura_com_bitolas['Msk'].apply(lambda x: str(round(x, 2)).replace('.', ','))
@@ -246,7 +246,8 @@ class CalculatorControl:
                 Msd_2 = abs(row['Msd']) - Msd_1
                 Ast_2 = 0.023 * Msd_2 / (d - d_linha)
                 d_linha_h = d_linha / altura
-                ksc = min(ksc_dict, key=lambda x: abs(ksc_dict[x] - d_linha_h))
+                ksc_key = min(ksc_dict.keys(), key=lambda x: abs(x - d_linha_h))
+                ksc = ksc_dict[ksc_key]
                 Asc = ksc * Msd_2 / (d - d_linha)
                 Ast = Ast_1 + Ast_2
                 armadura_df.loc[index, 'Ast'] = Ast
@@ -279,13 +280,15 @@ class CalculatorControl:
     def __estribos(cls, armadura_df, largura, d, fck, tipoCombinacao):
         dict_taxa_armadura_min = {20: 0.088, 25: 0.103, 30: 0.116, 35: 0.128, 40: 0.140, 45: 0.152, 50: 0.163}
         dict_ghama_c = {'Normais': 1.4, 'Especiais ou de Construção': 1.2, 'Excepcionais': 1.2}
+        list_estribos = [0.5, 0.63, 0.8, 1, 1.25]
+
         ghama_c = dict_ghama_c[tipoCombinacao]
 
         Vrd_u = 0.27*(1-(fck/250))*(fck/(ghama_c*10))*largura*d
         taxa_armadura_min = dict_taxa_armadura_min[fck]
-        armadura_min = taxa_armadura_min * largura * 0.5 # divide por 2 pois o estribo tem 2 ramos
-        area_estribo = math.pi*(0.25**2)
-        espacamento_armadura_min = math.floor((area_estribo / armadura_min) * 100)
+        armadura_min = taxa_armadura_min * largura / 2 # divide por 2 pois o estribo tem 2 ramos
+        area_estribo_min = math.pi*(0.25**2)
+        espacamento_armadura_min = math.floor((area_estribo_min / armadura_min) * 100)
 
         Vc = 0.6*(0.7*0.3*fck**(2/3))*largura*d/(ghama_c*10)
         Vsw_min = armadura_min*2/100 * 0.9 * 43.5 * d
@@ -304,22 +307,30 @@ class CalculatorControl:
                 mensagem_estribo_min = '1\u03A65mm c/ {}cm'.format(espacamento_armadura_min)
                 armadura_df.loc[index, 'espacamento_estribo'] = espacamento_armadura_min
                 armadura_df.loc[index, 'mensagem_estribo'] = mensagem_estribo_min
+                armadura_df.loc[index, 'phi_estribo'] = 0.5
             else:
-                armadura = (Vsd - Vc)*100/(0.9*43.5*d)
-                armadura = armadura/2
-                espacamento = math.floor((area_estribo / armadura) * 100)
+                #colocar aqui a iteracao de diametros de estribos
+                for phi_estribo in list_estribos:
+                    armadura = (Vsd - Vc)*100/(0.9*43.5*d)
+                    armadura = armadura/2
+                    area_estribo = math.pi*(phi_estribo/2)**2
+                    espacamento = math.floor((area_estribo / armadura) * 100)
+                    if espacamento < 10:
+                        continue
 
-                if Vsd <= 0.67 * Vrd_u:
-                        espacamento_max = min(0.6 * d, 30)
-                else:
-                        espacamento_max = min(0.6 * d, 20)
+                    if Vsd <= 0.67 * Vrd_u:
+                            espacamento_max = min(0.6 * d, 30)
+                    else:
+                            espacamento_max = min(0.6 * d, 20)
 
-                if espacamento > espacamento_max:
-                    espacamento = espacamento_max
+                    if espacamento > espacamento_max:
+                        espacamento = espacamento_max
 
-                mensagem_estribo = '1\u03A65mm c/ {}cm'.format(espacamento)
-                armadura_df.loc[index, 'espacamento_estribo'] = espacamento
-                armadura_df.loc[index, 'mensagem_estribo'] = mensagem_estribo
+                    mensagem_estribo = '1\u03A6{}mm c/ {}cm'.format(str(phi_estribo*10).replace('.', ','), espacamento)
+                    armadura_df.loc[index, 'espacamento_estribo'] = espacamento
+                    armadura_df.loc[index, 'mensagem_estribo'] = mensagem_estribo
+                    armadura_df.loc[index, 'phi_estribo'] = phi_estribo
+                    break
 
             if Vsd > Vrd_u:
                 armadura_df.loc[index, 'biela_comprimida'] = True
@@ -329,59 +340,83 @@ class CalculatorControl:
         return armadura_df
 
     @classmethod
+    def __estados_limites_servico(cls, armadura_df, largura, altura, fck, inercia, d, tipoCombinacao, classeAgressividade):
+        dict_limite_fissuras = {'I': 0.04, 'II': 0.03, 'III': 0.03, 'IV': 0.02}
+
+        fctm = 0.3*fck**(2/3)
+        fctk_inf = 0.7 * fctm
+
+        momento_formacao_fissuras = (1.5*fctk_inf*inercia)/(altura/2)
+        momento_deformacao_excessiva = (1.5 * fctm * inercia) / (altura / 2)
+
+
+
+        return None
+
+    @classmethod
     def __calcula_bitolas(cls, armadura_df, largura, cobrimento, altura):
-        list_bitolas = gerador_armaduras(phi_estribo=0.5, list_bws=[largura], cobrimento=cobrimento, phi_agregado=2.28)
-        df_bitolas = pd.DataFrame(list_bitolas)
         armadura_df['detalhamento_tracao'] = None
         armadura_df['detalhamento_compressao'] = None
-        colunas_opcoes = ['area', 'list_bitolas_camadas', 'list_barras_por_camada', 'numero_camadas', 'cg_armadura']
+
         for index, row in armadura_df.iterrows():
+            phi_estribo = row['phi_estribo']
+            list_bitolas = gerador_armaduras(phi_estribo=phi_estribo, list_bws=[largura], cobrimento=cobrimento,
+                                             phi_agregado=2.28)
+            df_bitolas = pd.DataFrame(list_bitolas)
             if not row['armaduraDupla']:
                 area_necessaria = row['Ast']
                 opcoes = df_bitolas[df_bitolas['area'] >= area_necessaria]
                 opcoes.sort_values(['numero_camadas', 'area'], inplace=True)
                 opcoes.drop(['bw'], axis=1, inplace=True)
                 opcoes.reset_index(inplace=True)
-                opcao = opcoes.iloc[[0]]
+                opcoes = opcoes.head()
+                list_detalhamento_tracao = []
+                for index_aux, opcao in opcoes.iterrows():
 
-                list_bitolas = opcao.loc[0, 'list_bitolas_camadas']
-                list_barras = opcao.loc[0, 'list_barras_por_camada']
+                    list_bitolas = opcao['list_bitolas_camadas']
+                    list_barras = opcao['list_barras_por_camada']
 
-                espacamento_horizontal = []
+                    espacamento_horizontal = []
 
-                for bitola, barra in zip(list_bitolas, list_barras):
-                    if barra == 0:
-                        espacamento_horizontal.append(0)
-                    else:
-                        espacamento = (largura - 2 * cobrimento - 2 * 0.5 - barra * bitola) / (barra - 1)
-                        espacamento_horizontal.append(espacamento)
+                    for bitola, barra in zip(list_bitolas, list_barras):
+                        if barra == 0:
+                            espacamento_horizontal.append(0)
+                        else:
+                            espacamento = (largura - 2 * cobrimento - 2 * 0.5 - barra * bitola) / (barra - 1)
+                            espacamento_horizontal.append(espacamento)
 
-                cg_armadura_tracao = opcao.loc[0, 'cg_armadura']
-                if row['Msd'] > 0:
-                    cg_armadura_tracao = [altura - i if i != 0 else 0 for i in cg_armadura_tracao]
+                    cg_armadura_tracao = opcao['cg_armadura']
+                    if row['Msd'] > 0:
+                        cg_armadura_tracao = [altura - i if i != 0 else 0 for i in cg_armadura_tracao]
 
-                detalhamento_tracao = {'list_bitolas_camadas': list_bitolas,
-                                       'list_barras_por_camada': list_barras,
-                                       'numero_camadas': opcao.loc[0, 'numero_camadas'],
-                                       'cg_armadura': cg_armadura_tracao, 'espacamento_horizontal': espacamento_horizontal}
+                    mensagens = []
+                    for barra, diametro in zip(opcao['list_barras_por_camada'],
+                                               opcao['list_bitolas_camadas']):
+                        if barra == 0 or diametro == 0:
+                            continue
+                        else:
+                            mensagem = '{}\u03A6'.format(barra)
+                            mensagem += ' {:s} mm'.format(str(diametro * 10).replace('.', ','))
+                            mensagens.append(mensagem)
 
-                mensagens = []
-                for barra, diametro in zip(opcao.loc[0, 'list_barras_por_camada'],
-                                           opcao.loc[0, 'list_bitolas_camadas']):
-                    if barra == 0 or diametro == 0:
-                        continue
-                    else:
-                        mensagem = '{}\u03A6'.format(barra)
-                        mensagem += ' {:s} mm'.format(str(diametro * 10).replace('.', ','))
-                        mensagens.append(mensagem)
+                    mensagem_detalhamento_tracao = ' + '.join(mensagens)
 
-                mensagem_detalhamento_tracao = ' + '.join(mensagens)
+                    Ast_efe = str(round(opcao['area'], 2)).replace('.', ',')
 
-                armadura_df.loc[index, 'Ast_efe'] = opcao.loc[0, 'area']
-                armadura_df.loc[index, 'detalhamento_tracao'] = json.dumps(detalhamento_tracao,
-                                                                           default=lambda o: int(o) if isinstance(o,
-                                                                                                                  np.int64) else o)
-                armadura_df.loc[index, 'mensagem_detalhamento_tracao'] = mensagem_detalhamento_tracao
+                    detalhamento_tracao = {'id': index_aux, 'Ast_efe': Ast_efe,'list_bitolas_camadas': list_bitolas,
+                                           'list_barras_por_camada': list_barras,
+                                           'numero_camadas': opcao['numero_camadas'],
+                                           'cg_armadura': cg_armadura_tracao,
+                                           'espacamento_horizontal': espacamento_horizontal,
+                                           'mensagem_detalhamento_tracao': mensagem_detalhamento_tracao}
+
+                    list_detalhamento_tracao.append(detalhamento_tracao)
+
+                #armadura_df.loc[index, 'detalhamento_tracao'] = json.dumps(detalhamento_tracao,
+                #                                                          default=lambda o: int(o) if isinstance(o,
+                #                                                                                                  np.int64) else o)
+
+                armadura_df.at[index, 'detalhamento_tracao'] = list_detalhamento_tracao
 
             else:
                 area_necessaria_tracao = row['Ast']
@@ -391,89 +426,114 @@ class CalculatorControl:
                 opcoes_tracao.sort_values(['numero_camadas', 'area'], inplace=True)
                 opcoes_tracao.drop(['bw'], axis=1, inplace=True)
                 opcoes_tracao.reset_index(inplace=True)
-                opcao_tracao = opcoes_tracao.iloc[[0]]
+                opcoes_tracao = opcoes_tracao.head()
 
-                list_bitolas_tracao = opcao_tracao.loc[0, 'list_bitolas_camadas']
-                list_barras_tracao = opcao_tracao.loc[0, 'list_barras_por_camada']
+                list_detalhamento_tracao = []
+                for index_aux, opcao_tracao_dupla in opcoes_tracao.iterrows():
 
-                espacamento_horizontal_tracao = []
+                    list_bitolas_tracao = opcao_tracao_dupla['list_bitolas_camadas']
+                    list_barras_tracao = opcao_tracao_dupla['list_barras_por_camada']
 
-                for bitola, barra in zip(list_bitolas_tracao, list_barras_tracao):
-                    if barra == 0:
-                        espacamento_horizontal_tracao.append(0)
-                    else:
-                        espacamento = (largura - 2 * cobrimento - 2 * 0.5 - barra * bitola) / (barra - 1)
-                        espacamento_horizontal_tracao.append(espacamento)
+                    espacamento_horizontal_tracao = []
 
-                cg_armadura_tracao = opcao.loc[0, 'cg_armadura']
-                if row['Msd'] > 0:
-                    cg_armadura_tracao = [altura - i if i != 0 else 0 for i in cg_armadura_tracao]
+                    for bitola, barra in zip(list_bitolas_tracao, list_barras_tracao):
+                        if barra == 0:
+                            espacamento_horizontal_tracao.append(0)
+                        else:
+                            espacamento = (largura - 2 * cobrimento - 2 * phi_estribo - barra * bitola) / (barra - 1)
+                            espacamento_horizontal_tracao.append(espacamento)
 
-                detalhamento_tracao = {'list_bitolas_camadas': list_bitolas_tracao,
-                                       'list_barras_por_camada': list_barras_tracao,
-                                       'numero_camadas': opcao_tracao.loc[0, 'numero_camadas'],
-                                       'cg_armadura': cg_armadura_tracao, 'espacamento_horizontal': espacamento_horizontal_tracao}
+                    cg_armadura_tracao = opcao_tracao_dupla.loc['cg_armadura']
+                    if row['Msd'] > 0:
+                        cg_armadura_tracao = [altura - i if i != 0 else 0 for i in cg_armadura_tracao]
 
-                armadura_df.loc[index, 'Ast_efe'] = opcao_tracao.loc[0, 'area']
-                armadura_df.loc[index, 'detalhamento_tracao'] = json.dumps(detalhamento_tracao,
-                                                                           default=lambda o: int(o) if isinstance(o,
-                                                                                                                  np.int64) else o)
+                    #armadura_df.loc[index, 'detalhamento_tracao'] = json.dumps(detalhamento_tracao,
+                     #                                                          default=lambda o: int(o) if isinstance(o,
+                      #                                                                                                np.int64) else o)
 
-                mensagens = []
-                for barra, diametro in zip(opcao_tracao.loc[0, 'list_barras_por_camada'],
-                                           opcao_tracao.loc[0, 'list_bitolas_camadas']):
-                    if barra == 0 or diametro == 0:
-                        continue
-                    else:
-                        mensagem = '{}\u03A6'.format(barra)
-                        mensagem += ' {:s} mm'.format(str(diametro * 10).replace('.', ','))
-                        mensagens.append(mensagem)
-                mensagem_detalhamento_tracao = ' + '.join(mensagens)
+                    mensagens = []
+                    for barra, diametro in zip(opcao_tracao_dupla['list_barras_por_camada'],
+                                               opcao_tracao_dupla['list_bitolas_camadas']):
+                        if barra == 0 or diametro == 0:
+                            continue
+                        else:
+                            mensagem = '{}\u03A6'.format(barra)
+                            mensagem += ' {:s} mm'.format(str(diametro * 10).replace('.', ','))
+                            mensagens.append(mensagem)
+                    mensagem_detalhamento_tracao = ' + '.join(mensagens)
+
+                    Ast_efe = str(round(opcao_tracao_dupla['area'], 2)).replace('.', ',')
+
+                    detalhamento_tracao = {'id': index_aux, 'Ast_efe': Ast_efe,
+                                           'list_bitolas_camadas': list_bitolas_tracao,
+                                           'list_barras_por_camada': list_barras_tracao,
+                                           'numero_camadas': opcao_tracao_dupla['numero_camadas'],
+                                           'cg_armadura': cg_armadura_tracao,
+                                           'espacamento_horizontal': espacamento_horizontal_tracao,
+                                           'mensagem_detalhamento_tracao': mensagem_detalhamento_tracao}
+
+                    list_detalhamento_tracao.append(detalhamento_tracao)
+
+                armadura_df.at[index, 'detalhamento_tracao'] = list_detalhamento_tracao
 
                 opcoes_compressao = df_bitolas[df_bitolas['area'] >= area_necessaria_compressao]
                 opcoes_compressao.sort_values(['numero_camadas', 'area'], inplace=True)
                 opcoes_compressao.drop(['bw'], axis=1, inplace=True)
                 opcoes_compressao.reset_index(inplace=True)
-                opcao_compressao = opcoes_compressao.iloc[[0]]
+                opcoes_compressao = opcoes_compressao.head()
 
-                list_bitolas_compressao = opcao_tracao.loc[0, 'list_bitolas_camadas']
-                list_barras_compressao = opcao_tracao.loc[0, 'list_barras_por_camada']
+                list_detalhamento_compressao = []
+                for index_aux, opcao_compressao in opcoes_compressao.iterrows():
 
-                espacamento_horizontal_compressao = []
+                    list_bitolas_compressao = opcao_compressao['list_bitolas_camadas']
+                    list_barras_compressao = opcao_compressao['list_barras_por_camada']
 
-                for bitola, barra in zip(list_bitolas_compressao, list_barras_compressao):
-                    if barra == 0:
-                        espacamento_horizontal_compressao.append(0)
-                    else:
-                        espacamento = (largura - 2 * cobrimento - 2 * 0.5 - barra * bitola) / (barra - 1)
-                        espacamento_horizontal_compressao.append(espacamento)
+                    espacamento_horizontal_compressao = []
 
-                cg_armadura_compressao = opcao.loc[0, 'cg_armadura']
-                if row['Msd'] < 0:
-                    cg_armadura_compressao = [altura - i if i != 0 else 0 for i in cg_armadura_compressao]
+                    for bitola, barra in zip(list_bitolas_compressao, list_barras_compressao):
+                        if barra == 0:
+                            espacamento_horizontal_compressao.append(0)
+                        else:
+                            espacamento = (largura - 2 * cobrimento - 2 * phi_estribo - barra * bitola) / (barra - 1)
+                            espacamento_horizontal_compressao.append(espacamento)
 
-                detalhamento_compressao = {'list_bitolas_camadas': list_bitolas_compressao,
-                                       'list_barras_por_camada': list_barras_compressao,
-                                       'numero_camadas': opcao_tracao.loc[0, 'numero_camadas'],
-                                       'cg_armadura': cg_armadura_compressao,
-                                       'espacamento_horizontal': espacamento_horizontal_compressao}
-                mensagens = []
-                for barra, diametro in zip(opcao_compressao.loc[0, 'list_barras_por_camada'],
-                                           opcao_compressao.loc[0, 'list_bitolas_camadas']):
-                    if barra == 0 or diametro == 0:
-                        continue
-                    else:
-                        mensagem = '{}\u03A6'.format(barra)
-                        mensagem += ' {:s} mm'.format(str(diametro * 10).replace('.', ','))
-                        mensagens.append(mensagem)
-                mensagem_detalhamento_compressao = ' + '.join(mensagens)
+                    cg_armadura_compressao = opcao_compressao['cg_armadura']
+                    if row['Msd'] < 0:
+                        cg_armadura_compressao = [altura - i if i != 0 else 0 for i in cg_armadura_compressao]
 
-                armadura_df.loc[index, 'Asc_efe'] = opcao_compressao.loc[0, 'area']
-                armadura_df.loc[index, 'detalhamento_compressao'] = json.dumps(detalhamento_compressao,
-                                                                               default=lambda o: int(o) if isinstance(o,
-                                                                                                                      np.int64) else o)
-                armadura_df.loc[index, 'mensagem_detalhamento_tracao'] = mensagem_detalhamento_tracao
-                armadura_df.loc[index, 'mensagem_detalhamento_compressao'] = mensagem_detalhamento_compressao
+                    mensagens = []
+                    for barra, diametro in zip(opcao_compressao['list_barras_por_camada'],
+                                               opcao_compressao['list_bitolas_camadas']):
+                        if barra == 0 or diametro == 0:
+                            continue
+                        else:
+                            mensagem = '{}\u03A6'.format(barra)
+                            mensagem += ' {:s} mm'.format(str(diametro * 10).replace('.', ','))
+                            mensagens.append(mensagem)
+                    mensagem_detalhamento_compressao = ' + '.join(mensagens)
+
+                    Asc_efe = str(round(opcao_compressao['area'], 2)).replace('.', ',')
+
+
+                    detalhamento_compressao = {'id': index_aux, 'Asc_efe': Asc_efe,
+                                           'list_bitolas_camadas': list_bitolas_compressao,
+                                           'list_barras_por_camada': list_barras_compressao,
+                                           'numero_camadas': opcao_compressao['numero_camadas'],
+                                           'cg_armadura': cg_armadura_compressao,
+                                           'espacamento_horizontal': espacamento_horizontal_compressao,
+                                           'mensagem_detalhamento_compressao': mensagem_detalhamento_compressao}
+
+                    list_detalhamento_compressao.append(detalhamento_compressao)
+
+                armadura_df.at[index, 'detalhamento_compressao'] = list_detalhamento_compressao
+
+                    #armadura_df.loc[index, 'Asc_efe'] = opcao_compressao.loc[0, 'area']
+                    # armadura_df.loc[index, 'detalhamento_compressao'] = json.dumps(detalhamento_compressao,
+                    #                                                              default=lambda o: int(o) if isinstance(o,
+                    #                                                                                                      np.int64) else o)
+                    #
+                    #armadura_df.loc[index, 'mensagem_detalhamento_tracao'] = mensagem_detalhamento_tracao
+                    #armadura_df.loc[index, 'mensagem_detalhamento_compressao'] = mensagem_detalhamento_compressao
 
 
         return armadura_df
