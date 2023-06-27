@@ -96,11 +96,8 @@ class CalculatorControl:
         armadura_com_bitolas['coord'] = armadura_com_bitolas['coord'].apply(
             lambda x: str(round(x, 2)).replace('.', ','))
 
-        #armadura_com_bitolas['Ast_efe'] = armadura_com_bitolas['Ast_efe'].apply(lambda x: str(round(x, 2)).replace('.', ','))
-
         if 'Asc' in armadura_com_bitolas.columns:
             armadura_com_bitolas['Asc'] = armadura_com_bitolas['Asc'].apply(lambda x: str(round(x, 2)).replace('.', ','))
-            #armadura_com_bitolas['Asc_efe'] = armadura_com_bitolas['Asc_efe'].apply(lambda x: str(round(x, 2)).replace('.', ','))
 
         armadura_com_bitolas['Ast'] = armadura_com_bitolas['Ast'].apply(lambda x: str(round(x, 2)).replace('.', ','))
         armadura_com_bitolas['Msk'] = armadura_com_bitolas['Msk'].apply(lambda x: str(round(x, 2)).replace('.', ','))
@@ -137,12 +134,12 @@ class CalculatorControl:
         cargas_conc_list = []
         for carga in cargas:
             posicao_inicial = float(carga['posiInicial'])
-            if posicao_inicial not in nos_list:
+            if posicao_inicial not in nos_list and [posicao_inicial, 0] not in coordenadas_list:
                 coordenadas_list.append([posicao_inicial, 0])
                 coordenadas_list = sorted(coordenadas_list, key=lambda x: x[0])
             if carga['tipo'] == 'Distribuída':
                 posicao_final = float(carga['posiFinal'])
-                if posicao_final not in nos_list:
+                if posicao_final not in nos_list and [posicao_final, 0] not in coordenadas_list:
                     coordenadas_list.append([posicao_final, 0])
                     coordenadas_list = sorted(coordenadas_list, key=lambda x: x[0])
                 elemento_id_inicial = coordenadas_list.index([posicao_inicial, 0]) + 1
@@ -309,7 +306,6 @@ class CalculatorControl:
                 armadura_df.loc[index, 'mensagem_estribo'] = mensagem_estribo_min
                 armadura_df.loc[index, 'phi_estribo'] = 0.5
             else:
-                #colocar aqui a iteracao de diametros de estribos
                 for phi_estribo in list_estribos:
                     armadura = (Vsd - Vc)*100/(0.9*43.5*d)
                     armadura = armadura/2
@@ -363,13 +359,15 @@ class CalculatorControl:
             list_bitolas = gerador_armaduras(phi_estribo=phi_estribo, list_bws=[largura], cobrimento=cobrimento,
                                              phi_agregado=2.28)
             df_bitolas = pd.DataFrame(list_bitolas)
+            df_bitolas = df_bitolas.groupby(['area']).agg(
+                {'bw': 'last', 'list_bitolas_camadas': 'last', 'list_barras_por_camada': 'last', 'numero_camadas': 'last', 'cg_armadura': 'last'}).reset_index()
             if not row['armaduraDupla']:
                 area_necessaria = row['Ast']
                 opcoes = df_bitolas[df_bitolas['area'] >= area_necessaria]
                 opcoes.sort_values(['numero_camadas', 'area'], inplace=True)
                 opcoes.drop(['bw'], axis=1, inplace=True)
                 opcoes.reset_index(inplace=True)
-                opcoes = opcoes.head()
+                opcoes = opcoes.head(7)
                 list_detalhamento_tracao = []
                 for index_aux, opcao in opcoes.iterrows():
 
@@ -426,7 +424,7 @@ class CalculatorControl:
                 opcoes_tracao.sort_values(['numero_camadas', 'area'], inplace=True)
                 opcoes_tracao.drop(['bw'], axis=1, inplace=True)
                 opcoes_tracao.reset_index(inplace=True)
-                opcoes_tracao = opcoes_tracao.head()
+                opcoes_tracao = opcoes_tracao.head(7)
 
                 list_detalhamento_tracao = []
                 for index_aux, opcao_tracao_dupla in opcoes_tracao.iterrows():
@@ -480,7 +478,7 @@ class CalculatorControl:
                 opcoes_compressao.sort_values(['numero_camadas', 'area'], inplace=True)
                 opcoes_compressao.drop(['bw'], axis=1, inplace=True)
                 opcoes_compressao.reset_index(inplace=True)
-                opcoes_compressao = opcoes_compressao.head()
+                opcoes_compressao = opcoes_compressao.head(7)
 
                 list_detalhamento_compressao = []
                 for index_aux, opcao_compressao in opcoes_compressao.iterrows():

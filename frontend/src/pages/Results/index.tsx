@@ -225,6 +225,12 @@ export function Results() {
                                     <MenuItem value={4}
                                               sx={{color: '#29292E'}}>{row['detalhamento_tracao'][4]['mensagem_detalhamento_tracao']}
                                     </MenuItem>
+                                    <MenuItem value={5}
+                                              sx={{color: '#29292E'}}>{row['detalhamento_tracao'][5]['mensagem_detalhamento_tracao']}
+                                    </MenuItem>
+                                    <MenuItem value={6}
+                                              sx={{color: '#29292E'}}>{row['detalhamento_tracao'][6]['mensagem_detalhamento_tracao']}
+                                    </MenuItem>
                                 </Select>
                             }</td>
                             <td>{opcoesDetalhamentoTracao.length > 0 ? opcoesDetalhamentoTracao[index]['Ast_efe'] : 0}</td>
@@ -251,6 +257,12 @@ export function Results() {
                                     </MenuItem>
                                     <MenuItem value={4}
                                               sx={{color: '#29292E'}}>{row['detalhamento_compressao'][4]['mensagem_detalhamento_compressao']}
+                                    </MenuItem>
+                                    <MenuItem value={5}
+                                              sx={{color: '#29292E'}}>{row['detalhamento_compressao'][5]['mensagem_detalhamento_compressao']}
+                                    </MenuItem>
+                                    <MenuItem value={6}
+                                              sx={{color: '#29292E'}}>{row['detalhamento_compressao'][6]['mensagem_detalhamento_compressao']}
                                     </MenuItem>
                                 </Select>
                                 : "-"}</td>
@@ -286,7 +298,7 @@ export function Results() {
                             <Line
                                 points={[(supportWidth + padding) * scaleFactor, beamYPosition, (length + supportWidth + padding) * scaleFactor, beamYPosition]}
                                 stroke="white"
-                                strokeWidth={5 * scaleFactor} // Scale the stroke width as well
+                                strokeWidth={6}
                             />
 
                             {/* Draw the supports */}

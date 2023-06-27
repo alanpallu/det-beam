@@ -50,29 +50,29 @@ export function Home() {
     const {register, handleSubmit, watch, reset, setValue, control} =
         useForm<NewCycleFormData>({
             resolver: zodResolver(newCycleFormValidationSchema),
-            // defaultValues: {
-            //     comprimento: "",
-            //     largura: "",
-            //     altura: "",
-            //     classeConcreto: "",
-            //     classeAgressividade: "",
-            //     constanteMolaEsq: "",
-            //     constanteMolaDir: "",
-            //     tramos: [{numero: "", comprimento: ""}],
-            //     cargas: [{tipo: "", intensidade: "", posiInicial: "", posiFinal: ""}],
-            // },
             defaultValues: {
-                comprimento: "1438",
-                largura: "19",
-                altura: "60",
-                classeConcreto: "C25",
-                combAcoes: 'Normais',
-                classeAgressividade: "II",
-                constanteMolaEsq: "1678522",
-                constanteMolaDir: "1678522",
-                tramos: [{numero: "1", comprimento: "719"}, {numero: "2", comprimento: "719"}],
-                cargas: [{tipo: "Distribuída", intensidade: "-0.2504", posiInicial: "0", posiFinal: "1438"}],
+                comprimento: "",
+                largura: "",
+                altura: "",
+                classeConcreto: "",
+                classeAgressividade: "",
+                constanteMolaEsq: "",
+                constanteMolaDir: "",
+                tramos: [{numero: "", comprimento: ""}],
+                cargas: [{tipo: "", intensidade: "", posiInicial: "", posiFinal: ""}],
             },
+            // defaultValues: {
+            //     comprimento: "1400",
+            //     largura: "20",
+            //     altura: "60",
+            //     classeConcreto: "C25",
+            //     combAcoes: 'Normais',
+            //     classeAgressividade: "II",
+            //     constanteMolaEsq: "7500000",
+            //     constanteMolaDir: "0",
+            //     tramos: [{numero: "1", comprimento: "800"}, {numero: "2", comprimento: "600"}],
+            //     cargas: [{tipo: "Distribuída", intensidade: "-0.2", posiInicial: "0", posiFinal: "800"}, {tipo: "Distribuída", intensidade: "-0.2", posiInicial: "1200", posiFinal: "1400"}, {tipo: "Distribuída", intensidade: "-0.4", posiInicial: "800", posiFinal: "1200"}, {tipo: "Concentrada", intensidade: "-80", posiInicial: "300"}, {tipo: "Concentrada", intensidade: "-100", posiInicial: "1200"}],
+            // },
         });
     // const [open, setOpen] = useState(false)
     const [tipoCargaAtual, setTipoCargaAtual] = useState(["Concentrada"]);
@@ -332,7 +332,7 @@ export function Home() {
                             />
                             {fieldsTramos.map((field, index) => {
                                 return (
-                                    <div>
+                                    <div style={{width: "100%"}}>
                                         <div className={"div-1"} key={field.id}>
                                             <BasicInput
                                                 type="text"
@@ -370,7 +370,7 @@ export function Home() {
                             </div>
                             {fieldsCargas.map((field, index) => {
                                 return (
-                                    <div>
+                                    <div style={{width: "100%"}}>
                                         <div className={"div-1"} key={field.id}>
                                             <BasicInput
                                                 type="text"

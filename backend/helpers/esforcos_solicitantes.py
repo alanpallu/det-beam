@@ -21,20 +21,11 @@ def get_esforcos(h, b, concrete_type, coords, node_ids_fixed, point_loads, q_loa
     for node in node_ids_fixed:
         node_id = int(coords.index([node, 0]) + 1)
         if node_id == 1:
-            ss.add_support_spring(node_id=node_id, translation=3, k=constante_mola_esq*10000) #todo revisar contante da mola
+            ss.add_support_spring(node_id=node_id, translation=3, k=constante_mola_esq*10000)
         elif node_id == len(coords):
             ss.add_support_spring(node_id=node_id, translation=3, k=constante_mola_dir*10000)
         else:
             ss.add_support_hinged(node_id=node_id)
-
-        # if node_id == 1 or node_id == len(coords):
-        #     if len(node_ids_fixed) == 2:
-        #         ss.add_support_hinged(node_id=node_id)
-        #     else:
-        #         #ss.add_support_fixed(node_id=node_id)
-        #         ss.add_support_spring(node_id=node_id, translation=3, k=constante_mola)
-        # else:
-        #     ss.add_support_hinged(node_id=node_id)
 
     for point_load in point_loads:
         node = int(point_load[0])
@@ -61,15 +52,12 @@ def get_esforcos(h, b, concrete_type, coords, node_ids_fixed, point_loads, q_loa
             ss.show_shear_force(factor=None, verbosity=0, scale=1, offset=(0, 0), figsize=None, show=False,
                                 values_only=False)
 
-        # Get the current figure that was just created
         fig = plt.gcf()
 
-        # Save the figure to a BytesIO object
         buf = io.BytesIO()
         canvas = FigureCanvas(fig)
         canvas.print_png(buf)
 
-        # Make sure the cursor is returned to the beginning of the stream before sending it
         buf.seek(0)
 
         return StreamingResponse(buf, media_type="image/png")
