@@ -133,7 +133,7 @@ export function Home() {
     const agressividadeAmbArray = ["I", "II", "III", "IV"];
 
     const fetchData = async (data: any) => {
-        axios.defaults.baseURL = "http://localhost:8999";
+        axios.defaults.baseURL = "http://localhost:8999"; //TODO arrumar url
         setButtonDisabled(true)
         try {
             const res1 = await axios.post("/api/calculate/structure-plot/", data, {responseType: "blob"})
@@ -151,7 +151,7 @@ export function Home() {
     };
 
     const handleCreateNewRequest = async (data: NewCycleFormData) => {
-        axios.defaults.baseURL = "http://localhost:8999";
+        axios.defaults.baseURL = "http://localhost:8999"; //TODO arrumar url
 
         // const response_structure = await axios
         //     .post("/api/calculate/structure-plot/", data, {responseType: "blob"})

@@ -536,7 +536,7 @@ export function Results() {
                                             x={20}
                                         />
                                         <Text
-                                            text={`${rowDetail['mensagem_detalhamento_tracao'].split('+')[rowIndex]}`}
+                                            text={`${(rowDetail as any)['mensagem_detalhamento_tracao'].split('+')[rowIndex]}`}
                                             fill='#00B37E'
                                             x={0}
                                             y={verticalPosition-15}
