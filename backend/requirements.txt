@@ -1,11 +1,5 @@
 fastapi
-uvicorn
+#uvicorn
 pandas
-pyodbc
-boto3
-psycopg2
-openpyxl
 anastruct
 matplotlib
-itsdangerous
-sqlalchemy
